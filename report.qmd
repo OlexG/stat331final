@@ -17,7 +17,7 @@ There are three separate sources for this data, depending on the year.
 -   **1950–2100:** The UN’s World Population Prospects 2019 provides harmonized annual child-mortality rates for every country including both historical values and projections through 2100.
 
 In case of average daily income, we are analyzing the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP).\
-Similarly, there are different sources for different years.
+Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
 
 -   **1981-2019:** Data is collected from the World Bank. For the countries missing from the World Bank, the number is estimated using the mean income based on the country GDP per capita. That data itself also has many sources, including the World Bank, Maddison Project Database, and IMF.
 
