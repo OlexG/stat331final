@@ -6,7 +6,9 @@ editor: visual
 
 ## Data
 
-We are exploring the relationship between child mortality and average daily income.\
+We are exploring the relationship between child mortality and average daily income.
+
+**Child Mortality Data:**\
 In case of child mortality, our data source provides a the number of the deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100.\
 There are three separate sources for this data, depending on the year.
 
@@ -16,6 +18,8 @@ There are three separate sources for this data, depending on the year.
 
 -   **1950–2100:** The UN’s World Population Prospects 2019 provides harmonized annual child-mortality rates for every country including both historical values and projections through 2100.
 
+**Daily Income Data:**
+
 In case of average daily income, we are analyzing the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP).\
 Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
 
@@ -23,8 +27,55 @@ Similarly, there are different sources for different years, and we also have dat
 
 -   **1800-1981 and 2019-2100:** These numbers are estimed using the growth rates of the constant dollar GDP per capita. These are rough estimates.
 
-
 ## Hypthosize Data
 
-It is well known that household income and mortality have a very strong correlation. 
-High household incomes is commonly known to be strongly correlated with lower 
+It is well known that household income and mortality have a very strong correlation. High household incomes is commonly known to be strongly correlated with lower
+
+## Data Cleaning Process
+
+**Setup and Imports**
+
+```{r setup}
+library(tidyverse)
+library(knitr)
+child <- read.csv("data/mincpcap_cppp.csv")
+income <- read.csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv")
+```
+
+**Cleaning each data set**
+
+Looking at the length of each data set, the income data has 2 additional observations, indicating that there are two additional countries included in the income data, lets look at which countries those are.
+
+```{r}
+income$country[!(income$country %in% child$country)]
+
+```
+
+Since the child mortality data set doesn't contain these countries, we will drop Liechtenstein and Holy See in the join process later on.
+
+Now I am removing the an X character that was appended onto every year in the table
+
+```{r}
+names(child) <- names(child) |>
+  str_replace("^X", "")  
+names(income) <- names(income) |>
+  str_replace("^X", "")
+```
+
+Next I pivot the data to long format, allowing me to join and group by country-year pairs for observations. I chose a left join from child to income with will keep all the countries child has, but drop those two additional countries data from Liechtenstein and Holy See
+
+```{r}
+child <- child |>
+  pivot_longer(-country, names_to = "year", values_to = "child_mortality") |>
+  mutate(year = as.integer(year))
+
+income <- income |>
+  pivot_longer(-country, names_to = "year", values_to = "daily_income") |>
+  mutate(year = as.integer(year))
+
+child_income <-child|>
+  left_join(income, by = join_by(country,year))
+
+```
+
+Removing null values:
