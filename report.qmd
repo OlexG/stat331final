@@ -56,7 +56,7 @@ child <- read.csv("data/mincpcap_cppp.csv")
 income <- read.csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv")
 ```
 
-**Cleaning each data set**
+**Data inspection**
 
 Looking at the length of each data set, the income data has 2 additional observations, indicating that there are two additional countries included in the income data, lets look at which countries those are.
 
@@ -66,6 +66,8 @@ income$country[!(income$country %in% child$country)]
 
 Since the child mortality data set doesn't contain these countries, we will drop Liechtenstein and Holy See in the join process later on.
 
+**Column names**
+
 Now we are removing the X character that was appended onto every year in the table
 
 ```{r}
@@ -74,6 +76,8 @@ names(child) <- names(child) |>
 names(income) <- names(income) |>
   str_replace("^X", "")
 ```
+
+**Pivoting each dataset**
 
 Next we pivot both datasets to long format, where each observation corresponds to a country, year, and its mortality rate/income. This allows us to join and group by country-year pairs for observations.
 
@@ -87,12 +91,16 @@ income <- income |>
   mutate(year = as.integer(year))
 ```
 
+**Joining the datasets**
+
 We chose a left join from child to income with will keep all the countries child has, but drop those two additional countries' data from Liechtenstein and Holy See.
 
 ```{r}
 child_income <- child |>
   left_join(income, by = join_by(country, year))
 ```
+
+**Removing missing values**
 
 Once joined, we will check the data for missing values, as we want each observation to be a complete record of country, year, mortality rate, and income.
 
@@ -113,6 +121,8 @@ Seeing as the data contains 1500 missing values for income, we will filter out t
 child_income <- child_income |>
   filter(!is.na(daily_income))
 ```
+
+**Factor conversion**
 
 The final step of cleaning is to convert the country column from characters to factors, as there is a limited, finite set of countries. Factors will allow for easier ordering in the analysis and visualizations later on.
 
