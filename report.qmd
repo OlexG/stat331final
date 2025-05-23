@@ -29,7 +29,12 @@ Similarly, there are different sources for different years, and we also have dat
 
 ## Hypthosize Data
 
-It is well known that household income and mortality have a very strong correlation. High household incomes is commonly known to be strongly correlated with lower
+There is a strong negative correlation between average daily income and child mortality rates across countries and over time. as average daily income increases, child mortality rates decrease. Higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are very critical factors in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education contributes significantly to higher child mortality rates(PMC).
+
+# Sources: 
+
+[WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
+[PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
 
 ## Data Cleaning Process
 
