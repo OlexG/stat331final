@@ -62,7 +62,6 @@ Looking at the length of each data set, the income data has 2 additional observa
 
 ```{r}
 income$country[!(income$country %in% child$country)]
-
 ```
 
 Since the child mortality data set doesn't contain these countries, we will drop Liechtenstein and Holy See in the join process later on.
@@ -76,7 +75,7 @@ names(income) <- names(income) |>
   str_replace("^X", "")
 ```
 
-Next we pivot the data to long format, allowing us to join and group by country-year pairs for observations. We chose a left join from child to income with will keep all the countries child has, but drop those two additional countries' data from Liechtenstein and Holy See.
+Next we pivot both datasets to long format, where each observation corresponds to a country, year, and its mortality rate/income. This allows us to join and group by country-year pairs for observations.
 
 ```{r}
 child <- child |>
@@ -86,10 +85,38 @@ child <- child |>
 income <- income |>
   pivot_longer(-country, names_to = "year", values_to = "daily_income") |>
   mutate(year = as.integer(year))
-
-child_income <- child |>
-  left_join(income, by = join_by(country,year))
-
 ```
 
-Removing null values:
+We chose a left join from child to income with will keep all the countries child has, but drop those two additional countries' data from Liechtenstein and Holy See.
+
+```{r}
+child_income <- child |>
+  left_join(income, by = join_by(country, year))
+```
+
+Once joined, we will check the data for missing values, as we want each observation to be a complete record of country, year, mortality rate, and income.
+
+```{r}
+child_income |>
+  summarise(across(everything(),
+                   ~ sum(is.na(.)))) |>
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "missing") |>
+  filter(missing > 0) |>
+  kable()
+```
+
+Seeing as the data contains 1500 missing values for income, we will filter out those rows.
+
+```{r}
+child_income <- child_income |>
+  filter(!is.na(daily_income))
+```
+
+The final step of cleaning is to convert the country column from characters to factors, as there is a limited, finite set of countries. Factors will allow for easier ordering in the analysis and visualizations later on.
+
+```{r}
+child_income <- child_income |>
+  mutate(country = fct(country))
+```
