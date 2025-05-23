@@ -1,18 +1,28 @@
 ---
 title: "Final Report"
-format: html
-editor: visual
+author: "Ryan Hu, Oleks Gorpynich, JB Diei, Nick Li"
+format:
+  html:
+    embed-resources: true
+    code-tools: true
+    toc: true
+editor: source
+execute: 
+  error: true
+  echo: true
+  message: false
+  warning: false
+code-fold: true
 ---
 
 ## Data
 
 We are exploring the relationship between child mortality and average daily income.
 
-**Child Mortality Data:**\
-In case of child mortality, our data source provides a the number of the deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100.\
-There are three separate sources for this data, depending on the year.
+**Child Mortality Data:**
+In case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
 
--   **1800–1950 (and intermittently beyond):** Data come from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
+-   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
 
 -   **1950–2016:** The UN Inter‐agency Group for Child Mortality Estimation (UN IGME)—a partnership of UNICEF, WHO, the UN Population Division, and the World Bank—produced these estimates. Their publicly released country and global child-mortality series (available at childmortality.org) extend back to 1950 for some nations, cover 1960 for about half, and span 1970–2018 for 70% of all countries.
 
@@ -20,16 +30,15 @@ There are three separate sources for this data, depending on the year.
 
 **Daily Income Data:**
 
-In case of average daily income, we are analyzing the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP).\
-Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
+In case of average daily income, we are analyzing the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP). Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
 
 -   **1981-2019:** Data is collected from the World Bank. For the countries missing from the World Bank, the number is estimated using the mean income based on the country GDP per capita. That data itself also has many sources, including the World Bank, Maddison Project Database, and IMF.
 
--   **1800-1981 and 2019-2100:** These numbers are estimed using the growth rates of the constant dollar GDP per capita. These are rough estimates.
+-   **1800-1981 and 2019-2100:** These numbers are estimated using the growth rates of the constant dollar GDP per capita. These are rough estimates.
 
 ## Hypthosize Data
 
-There is a strong negative correlation between average daily income and child mortality rates across countries and over time. as average daily income increases, child mortality rates decrease. Higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are very critical factors in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education contributes significantly to higher child mortality rates(PMC).
+There is a strong negative correlation between average daily income and child mortality rates across countries and over time. As average daily income increases, child mortality rates decrease. Higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are very critical factors in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education contributes significantly to higher child mortality rates(PMC).
 
 # Sources: 
 
@@ -58,7 +67,7 @@ income$country[!(income$country %in% child$country)]
 
 Since the child mortality data set doesn't contain these countries, we will drop Liechtenstein and Holy See in the join process later on.
 
-Now I am removing the an X character that was appended onto every year in the table
+Now we are removing the X character that was appended onto every year in the table
 
 ```{r}
 names(child) <- names(child) |>
@@ -67,7 +76,7 @@ names(income) <- names(income) |>
   str_replace("^X", "")
 ```
 
-Next I pivot the data to long format, allowing me to join and group by country-year pairs for observations. I chose a left join from child to income with will keep all the countries child has, but drop those two additional countries data from Liechtenstein and Holy See
+Next we pivot the data to long format, allowing us to join and group by country-year pairs for observations. We chose a left join from child to income with will keep all the countries child has, but drop those two additional countries' data from Liechtenstein and Holy See.
 
 ```{r}
 child <- child |>
@@ -78,7 +87,7 @@ income <- income |>
   pivot_longer(-country, names_to = "year", values_to = "daily_income") |>
   mutate(year = as.integer(year))
 
-child_income <-child|>
+child_income <- child |>
   left_join(income, by = join_by(country,year))
 
 ```
