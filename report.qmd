@@ -40,11 +40,6 @@ In case of average daily income, we are analyzing the survey-derived average dai
 
 There is a strong negative correlation between average daily income and child mortality rates across countries and over time. As average daily income increases, child mortality rates decrease. Higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are very critical factors in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education contributes significantly to higher child mortality rates(PMC).
 
-# Sources: 
-
-[WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
-[PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
-
 ## Data Cleaning Process
 
 **Setup and Imports**
@@ -52,6 +47,8 @@ There is a strong negative correlation between average daily income and child mo
 ```{r setup}
 library(tidyverse)
 library(knitr)
+library(gganimate)
+library(gifski)
 child <- read.csv("data/mincpcap_cppp.csv")
 income <- read.csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv")
 ```
@@ -130,3 +127,58 @@ The final step of cleaning is to convert the country column from characters to f
 child_income <- child_income |>
   mutate(country = fct(country))
 ```
+
+## Data Visualization
+
+In the following visualization, we plot the relationship between average daily household income and child mortality rates across countries. The daily income and child mortality values are aggregated by country over all years (1800-2100). Each point represents a country, with the x-axis showing the average daily income in 2017 U.S. dollars and the y-axis showing the average number of child mortalities per 1000 children.
+
+```{r}
+child_income |>
+  group_by(country) |>
+  summarise(avg_daily_income = mean(daily_income),
+            avg_child_mortality = mean(child_mortality)) |>
+  ggplot(mapping = aes(x = avg_daily_income,
+                       y = avg_child_mortality)) +
+  geom_point() +
+  labs(title = "Relationship Between Household Income and Child Mortality by Country",
+       subtitle = "Average Number of Child Mortalities (per 1000 children)",
+       x = "Average Daily Household Income (2017 U.S. Dollars)",
+       y = NULL)
+```
+
+The plot shows a negative trend, indicating that as average daily income increases, child mortality rates tend to decrease.
+
+To explore how the relationship between daily income and child mortality has changed over time, we created an animated visualization using yearly data. Instead of averaging across all years, this animation shows how income and mortality values per country shift on a year-by-year basis.
+
+```{r}
+#| eval: false
+anim <- child_income |>
+  ggplot(mapping = aes(x = daily_income,
+                       y = child_mortality)) +
+  geom_point(mapping = aes(group = country)) +
+  labs(title = "Relationship Between Household Income and Child Mortality by Country (Year {frame_time})",
+       subtitle = "Number of Child Mortalities (per 1000 children)",
+       x = "Daily Household Income (2017 U.S. Dollars)",
+       y = NULL) +
+  transition_time(year) +
+  ease_aes("linear")
+
+anim_save("income_mortality.gif",
+          path = "./animations",
+          animation = anim,
+          duration = 10,
+          width = 1200,
+          height = 800,
+          res = 144,
+          renderer = gifski_renderer())
+```
+
+![](./animations/income_mortality.gif)
+
+The animation shows that both income and child mortality rates have changed substantially over time, with many countries experiencing a decrease in income levels and an increase in child mortality. As time progresses, the points shift from a horizontal pattern to a near vertical pattern, indicating a greater variation in child mortality rates across countries in the present day.
+
+## Sources
+
+- [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
+- [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
+- [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
