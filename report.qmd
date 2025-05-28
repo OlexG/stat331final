@@ -112,7 +112,64 @@ child_income |>
   kable()
 ```
 
-Seeing as the data contains 1500 missing values for income, we will filter out those rows.
+Let's visualize our missing data by year to figure out any pattern for such missing data.
+
+```{r}
+missing_by_year <- child_income |>
+  group_by(year) |>
+  summarise(
+    n_missing_mortality = sum(is.na(child_mortality)),
+    n_missing_income = sum(is.na(daily_income)),
+    total_countries = n(),
+    pct_missing_mortality = round(n_missing_mortality / total_countries * 100, 1),
+    pct_missing_income = round(n_missing_income / total_countries * 100, 1)
+  )
+
+# Visualize the pattern
+missing_by_year |>
+  pivot_longer(cols = c(pct_missing_mortality, pct_missing_income),
+               names_to = "variable",
+               values_to = "percent_missing") |>
+  mutate(variable = case_when(
+    variable == "pct_missing_mortality" ~ "Child Mortality",
+    variable == "pct_missing_income" ~ "Daily Income"
+  )) |>
+  ggplot(aes(x = year, y = percent_missing, color = variable)) +
+  geom_line(size = 1) +
+  labs(title = "Missing Data Patterns Over Time",
+       x = "Year",
+       y = "Percent Missing (%)",
+       color = "Variable") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1")
+```
+Seems like 5% of countries have missing income values
+up until 1950. These are probably the same countries
+as the rate is constant at 5%. Let's figure out which 
+countries these are. 
+
+```{r}
+child_income |>
+ filter(is.na(daily_income)) |>
+ group_by(country) |>
+ summarise(
+   lowest_year_missing = min(year),
+   highest_year_missing = max(year),
+   total_years_missing = n()
+ ) |>
+ arrange(desc(total_years_missing)) |>
+ kable(
+   caption = "Countries with Missing Income Data",
+   col.names = c("Country", "First Year Missing", "Last Year Missing", "Total Years Missing"),
+   align = c("l", "c", "c", "c")
+ ) |>
+ kable_styling(
+   bootstrap_options = c("striped", "hover"),
+   full_width = FALSE
+ )
+```
+
+For each of the countries above (10 countries in total), we have missing values from the year 1800 to 1949 for income. Overall, we have 1500 missing values for income. We will filter out these rows for simplicity's sake, as we cannot predict these values.
 
 ```{r}
 child_income <- child_income |>
