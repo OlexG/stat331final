@@ -49,6 +49,8 @@ library(tidyverse)
 library(knitr)
 library(gganimate)
 library(gifski)
+library(broom)
+library(kableExtra)
 child <- read.csv("data/mincpcap_cppp.csv")
 income <- read.csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv")
 ```
@@ -239,3 +241,93 @@ The animation shows that both income and child mortality rates have changed subs
 - [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
 - [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
 - [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
+
+## Linear Regression
+We will further analyze the relationship between income and child mortality through fitting a linear regression model.
+We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...).
+Let's begin by plotting the scatterplot of this data,
+where x is our median daily income value, and y is 
+the median child mortality value.
+
+```{r}
+regression_data <- child_income |>
+  group_by(country) |>
+  summarise(
+    median_income = median(daily_income),
+    median_mortality = median(child_mortality)
+  ) |>
+  ungroup()
+
+regression_data |>
+  ggplot(aes(x = median_income, y = median_mortality)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  labs(title = "Linear Scale: Income vs Child Mortality",
+       subtitle = "Median values across all years (1800-2100)",
+       x = "Median Daily Income (2017 USD)",
+       y = "Median Child Mortality (per 1000 births)")
+```
+
+Look at the scatter plot, it seems like a log transformation is fitting. 
+
+```{r}
+regression_data |>
+  ggplot(aes(x = median_income, y = median_mortality)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  scale_x_log10() +
+  scale_y_log10() +
+  annotation_logticks() +
+  labs(title = "Log Scale: Income vs Child Mortality",
+       subtitle = "Median values across all years (1800-2100)",
+       x = "Median Daily Income (2017 USD, log scale)",
+       y = "Median Child Mortality (per 1000 births, log scale)")
+```
+
+Above, we clearly a better fitted line, suggesting that a log-log model is much more appropriate for our data. Here are the calculated coefficients for the log-log model:
+
+```{r}
+regression_data_log <- regression_data |>
+  mutate(
+    log_income = log10(median_income),
+    log_mortality = log10(median_mortality)
+  )
+model_log <- lm(log_mortality ~ log_income, data = regression_data_log)
+
+# ChatGPT helped with the tidy output
+tidy(model_log, conf.int = TRUE) |>
+  mutate(
+    term = case_when(
+      term == "(Intercept)" ~ "Intercept",
+      term == "log_income" ~ "log₁₀(Income)"
+    ),
+    across(c(estimate, std.error, conf.low, conf.high), ~round(., 4)),
+    statistic = round(statistic, 2),
+    p.value = format.pval(p.value, digits = 3, eps = 0.001)
+  ) |>
+  select(term, estimate, std.error, conf.low, conf.high, statistic, p.value) |>
+  kable(
+    caption = "Log-Log Regression Model Coefficients",
+    col.names = c("Term", "Estimate", "Std. Error", "95% CI Lower", "95% CI Upper", "t-statistic", "p-value"),
+    align = c("l", "r", "r", "r", "r", "r", "r")
+  ) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    position = "center"
+  ) |>
+  row_spec(0, bold = TRUE, color = "white", background = "#4472C4") |>
+  footnote(
+    general = paste("R² =", round(summary(model_log)$r.squared, 3), 
+                   " | Adjusted R² =", round(summary(model_log)$adj.r.squared, 3)),
+    general_title = "Model Fit: "
+  )
+```
+## Interpretation
+
+Our intercept is 2.2384 and our slope is -0.7381. 
+For each unit increase in log₁₀(Income), log₁₀(Child Mortality) decreases by 0.7381 units. 
+
+This negative coefficient is highly statistically significant (p < 0.001), confirming a strong inverse relationship between income and child mortality. 
+
+Overall, the model explains 62.6% of the variance in child mortality rates across countries (R² = 0.626), indicating a strong relationship between income and child mortality. This statistic and extremely low p-values for both coefficients confirm that this relationship is statistically significant.
