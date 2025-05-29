@@ -19,8 +19,7 @@ code-fold: true
 
 We are exploring the relationship between child mortality and average daily income.
 
-**Child Mortality Data:**
-In case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
+**Child Mortality Data:** In case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
 
 -   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
 
@@ -145,10 +144,8 @@ missing_by_year |>
   theme_minimal() +
   scale_color_brewer(palette = "Set1")
 ```
-Seems like 5% of countries have missing income values
-up until 1950. These are probably the same countries
-as the rate is constant at 5%. Let's figure out which 
-countries these are. 
+
+Seems like 5% of countries have missing income values up until 1950. These are probably the same countries as the rate is constant at 5%. Let's figure out which countries these are.
 
 ```{r}
 child_income |>
@@ -238,16 +235,13 @@ The animation shows that both income and child mortality rates have changed subs
 
 ## Sources
 
-- [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
-- [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
-- [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
+-   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
+-   [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
+-   [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
 
 ## Linear Regression
-We will further analyze the relationship between income and child mortality through fitting a linear regression model.
-We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...).
-Let's begin by plotting the scatterplot of this data,
-where x is our median daily income value, and y is 
-the median child mortality value.
+
+We will further analyze the relationship between income and child mortality through fitting a linear regression model. We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...). Let's begin by plotting the scatterplot of this data, where x is our median daily income value, and y is the median child mortality value.
 
 ```{r}
 regression_data <- child_income |>
@@ -268,7 +262,7 @@ regression_data |>
        y = "Median Child Mortality (per 1000 births)")
 ```
 
-Look at the scatter plot, it seems like a log transformation is fitting. 
+Look at the scatter plot, it seems like a log transformation is fitting.
 
 ```{r}
 regression_data |>
@@ -323,11 +317,42 @@ tidy(model_log, conf.int = TRUE) |>
     general_title = "Model Fit: "
   )
 ```
+
+**Variance Table:**
+
+To evaluate how well our regression model explains differences in child mortality, we calculated the variance in the response variable (log-transformed child mortality), the variance in the model’s fitted (predicted) values, and the variance in the residuals (unexplained differences).
+
+```{r}
+regression_data_log <- regression_data_log |>
+  mutate(
+    fitted = fitted(model_log),
+    residuals = resid(model_log)
+  )
+
+# finding the desired variances
+var_y <- var(regression_data_log$log_mortality)
+var_fitted <- var(regression_data_log$fitted)
+var_resid <- var(regression_data_log$residuals)
+r_squared <- var_fitted / var_y
+
+
+tibble(
+  `Variance in log(Mortality)` = var_y,
+  `Variance in Fitted Values` = var_fitted,
+  `Variance in Residuals` = var_resid,
+  `Model R²` = r_squared
+) |>
+  round(3) |>
+  kable(caption = "Model Fit Summary (Log-Log Regression)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+We can see that the total variance in log(mortality) is 0.16, where 0.10 is explained by the log(income) and the other 0.06 is unexplained. Indicating that approximately 62.6% of the variation in child mortality rates across countires can be accounted for by their difference in income. The R\^2 value of 0.626 confirms that there is a statistically significant relationship between decreased child mortality and increased income.
+
 ## Interpretation
 
-Our intercept is 2.2384 and our slope is -0.7381. 
-For each unit increase in log₁₀(Income), log₁₀(Child Mortality) decreases by 0.7381 units. 
+Our intercept is 2.2384 and our slope is -0.7381. For each unit increase in log₁₀(Income), log₁₀(Child Mortality) decreases by 0.7381 units.
 
-This negative coefficient is highly statistically significant (p < 0.001), confirming a strong inverse relationship between income and child mortality. 
+This negative coefficient is highly statistically significant (p \< 0.001), confirming a strong inverse relationship between income and child mortality.
 
 Overall, the model explains 62.6% of the variance in child mortality rates across countries (R² = 0.626), indicating a strong relationship between income and child mortality. This statistic and extremely low p-values for both coefficients confirm that this relationship is statistically significant.
