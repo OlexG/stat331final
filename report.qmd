@@ -37,7 +37,7 @@ In case of average daily income, we are analyzing the survey-derived average dai
 
 ## Hypthosize Data
 
-There is a strong negative correlation between average daily income and child mortality rates across countries and over time. As average daily income increases, child mortality rates decrease. Higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are very critical factors in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education contributes significantly to higher child mortality rates(PMC).
+We hypothesize that there is a strong negative correlation between average daily income and child mortality rates across countries and over time. Specifically, we expect as average daily income increases, child mortality rates tend to decrease. We suspect this because higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are factors that could contribute in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore potentially reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education could contribute significantly to higher child mortality rates(PMC).
 
 ## Data Cleaning Process
 
