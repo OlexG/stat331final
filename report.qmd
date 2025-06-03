@@ -361,6 +361,60 @@ This negative coefficient is highly statistically significant (p \< 0.001), conf
 
 Overall, the model explains 62.6% of the variance in child mortality rates across countries (R² = 0.626), indicating a strong relationship between income and child mortality. This statistic and extremely low p-values for both coefficients confirm that this relationship is statistically significant.
 
+## Cross Validation
+
+Cross-validation is a statistical method used to evaluate how well a statistical model will perform on unseen data. In k-fold cross-validation, the dataset is randomly divided into k equal-sized groups (folds). The model is trained on k-1 folds and tested on the remaining fold, and this process is repeated k times, with each fold serving as the test set once. The final performance metric is the average across all k iterations.
+
+For our regression model examining the relationship between median income and median child mortality, we will implement k-fold cross-validation to assess its performance.
+
+```{r}
+n_rows <- nrow(regression_data_log)
+max_folds <- floor(n_rows / 10)
+k <- max_folds
+```
+
+With a dataset of `r n_rows` rows, we can use up to `r max_folds` folds to maintain at least 10 observations per fold. We will use k = `r k` folds for our cross-validation, which gives us approximately `r round(n_rows / k, 1)` observations per fold.
+
+```{r}
+set.seed(42)
+
+cv_fold <- function(fold_index, data) {
+  # split data into train and test sets
+  train_data <- data |>
+    filter(fold != fold_index)
+  test_data <- data |>
+    filter(fold == fold_index)
+  
+  # fit model on training data
+  model <- lm(log_mortality ~ log_income, data = train_data)
+  
+  # make predictions on validation data
+  predictions <- predict(model, newdata = test_data)
+  
+  # calculate R² for fold
+  r_squared <- var(predictions) / var(test_data$log_mortality)
+  
+  return(r_squared)
+}
+
+# divide data into folds
+regression_data_log <- regression_data_log |>
+  mutate(fold = sample(rep_len(1:k, length.out = n_rows),
+                       size = n_rows))
+
+# perform k-fold cross-validation
+cv_results <- map_dbl(1:k, cv_fold, data = regression_data_log)
+cv_results <- tibble(fold = 1:k,
+                     r_squared = cv_results)
+
+cv_results |>
+  kable(caption = "K-Fold Cross Validation Results",
+        col.names = c("Fold", "R²"),
+        align = c("c", "r"),
+        digits = 3) |>
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
 ## Sources
 
 -   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
