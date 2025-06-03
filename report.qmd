@@ -351,7 +351,7 @@ tibble(
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-We can see that the total variance in log(mortality) is 0.16, where 0.10 is explained by the log(income) and the other 0.06 is unexplained. Indicating that approximately 62.6% of the variation in child mortality rates across countires can be accounted for by their difference in income. The R\^2 value of 0.626 confirms that there is a statistically significant relationship between decreased child mortality and increased income.
+We can see that the total variance in log(mortality) is 0.16, where 0.10 is explained by the log(income) and the other 0.06 is unexplained. Indicating that approximately 62.6% of the variation in child mortality rates across countires can be accounted for by their difference in income. 
 
 ## Interpretation
 
@@ -392,7 +392,7 @@ cv_fold <- function(fold_index, data) {
   predictions <- predict(model, newdata = test_data)
   
   # calculate R² for fold
-  r_squared <- var(predictions) / var(test_data$log_mortality)
+  r_squared <- cor(test_data$log_mortality, predictions)^2
   
   return(r_squared)
 }
@@ -407,13 +407,58 @@ cv_results <- map_dbl(1:k, cv_fold, data = regression_data_log)
 cv_results <- tibble(fold = 1:k,
                      r_squared = cv_results)
 
-cv_results |>
-  kable(caption = "K-Fold Cross Validation Results",
-        col.names = c("Fold", "R²"),
-        align = c("c", "r"),
-        digits = 3) |>
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
+## Cross Validation Analysis
+
+```{r}
+mean_cv_r2 <- mean(cv_results$r_squared)
+
+cv_results |>
+  ggplot(aes(x = fold, y = r_squared)) +
+  geom_point(size = 3, color = "steelblue") +
+  geom_hline(aes(yintercept = mean_cv_r2, color = "Mean CV R²"), 
+             linetype = "dashed", 
+             linewidth = 1) +
+  geom_hline(aes(yintercept = 0.626, color = "Original R²"), 
+             linetype = "dashed", 
+             linewidth = 1) +
+  scale_color_manual(name = "Reference Lines: ",
+                     values = c("Mean CV R²" = "red", 
+                               "Original R²" = "darkgreen")) +
+  labs(title = "Cross-Validation R² Values by Fold",
+       subtitle = paste("Mean CV R² =", round(mean_cv_r2, 3), "| Original R² = 0.626"),
+       x = "Fold",
+       y = "R²") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(ncol = 1))
+
+# Calculate summary statistics
+cv_stats <- cv_results |>
+  summarise(
+    mean_r2 = round(mean(r_squared), 3),
+    sd_r2 = round(sd(r_squared), 3),
+    min_r2 = round(min(r_squared), 3),
+    max_r2 = round(max(r_squared), 3),
+    diff_from_original = round(mean(r_squared) - 0.626, 3)
+  )
+```
+
+- **Mean CV R²:** `r cv_stats$mean_r2`
+- **Standard Deviation:** `r cv_stats$sd_r2`
+- **Range:** `r cv_stats$min_r2` to `r cv_stats$max_r2`
+- **Difference from Original R²:** `r cv_stats$diff_from_original`
+
+The cross-validation results show that our model has a mean R² of `r cv_stats$mean_r2` across all folds, which is lower than the original R² of 0.626. This indicates an over-fitted model.
+
+The standard deviation of `r cv_stats$sd_r2` across folds indicates some variability in model performance. With R² values ranging from `r cv_stats$min_r2` to `r cv_stats$max_r2`.
+
+- In the best case, the model explains `r round(cv_stats$max_r2 * 100, 1)`% of variance.
+- In the worst case, it still explains `r round(cv_stats$min_r2 * 100, 1)`% of variance.
+
+
+This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. 
+This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
 
 ## Sources
 
