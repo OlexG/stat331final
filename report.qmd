@@ -243,12 +243,6 @@ anim_save("income_mortality.gif",
 
 The animation shows that both income and child mortality rates have changed substantially over time, with many countries experiencing a decrease in income levels and an increase in child mortality. As time progresses, the points shift from a horizontal pattern to a near vertical pattern, indicating a greater variation in child mortality rates across countries in the present day.
 
-## Sources
-
--   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
--   [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
--   [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
-
 ## Linear Regression
 
 We will further analyze the relationship between income and child mortality through fitting a linear regression model. We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...). Let's begin by plotting the scatterplot of this data, where x is our median daily income value, and y is the median child mortality value.
@@ -366,3 +360,9 @@ Our intercept is 2.2384 and our slope is -0.7381. For each unit increase in logâ
 This negative coefficient is highly statistically significant (p \< 0.001), confirming a strong inverse relationship between income and child mortality.
 
 Overall, the model explains 62.6% of the variance in child mortality rates across countries (RÂ² = 0.626), indicating a strong relationship between income and child mortality. This statistic and extremely low p-values for both coefficients confirm that this relationship is statistically significant.
+
+## Sources
+
+-   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
+-   [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
+-   [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
