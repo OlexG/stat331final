@@ -196,7 +196,7 @@ child_income <- child_income |>
 
 ## Data Visualization
 
-In the following visualization, we plot the relationship between average daily household income and child mortality rates across countries. The daily income and child mortality values are aggregated by country over all years (1800-2100). Each point represents a country, with the x-axis showing the average daily income in 2017 U.S. dollars and the y-axis showing the average number of child mortalities per 1000 children.
+In the following visualization, we plot the relationship between average daily household income and child mortality rates across countries. The daily income and child mortality values are aggregated by country over all years (1800-2024). Each point represents a country, with the x-axis showing the average daily income in 2017 U.S. dollars and the y-axis showing the average number of child mortalities per 1000 children.
 
 ```{r}
 child_income |>
@@ -261,7 +261,7 @@ regression_data |>
   geom_point(alpha = 0.6) +
   geom_smooth(method = "lm", se = TRUE, color = "blue") +
   labs(title = "Linear Scale: Income vs Child Mortality",
-       subtitle = "Median values across all years (1800-2100)",
+       subtitle = "Median values across all years (1800-2024)",
        x = "Median Daily Income (2017 USD)",
        y = "Median Child Mortality (per 1000 births)")
 ```
@@ -277,7 +277,7 @@ regression_data |>
   scale_y_log10() +
   annotation_logticks() +
   labs(title = "Log Scale: Income vs Child Mortality",
-       subtitle = "Median values across all years (1800-2100)",
+       subtitle = "Median values across all years (1800-2024)",
        x = "Median Daily Income (2017 USD, log scale)",
        y = "Median Child Mortality (per 1000 births, log scale)")
 ```
