@@ -175,6 +175,16 @@ child_income <- child_income |>
   filter(!is.na(daily_income))
 ```
 
+**Removing projections**
+
+Since we want the rest of the analysis to be based on actual historical values instead of projections, we will filter out all rows with a years past 2024.
+
+```{r}
+child_income <- child_income |>
+  filter(year <= 2024)
+```
+
+
 **Factor conversion**
 
 The final step of cleaning is to convert the country column from characters to factors, as there is a limited, finite set of countries. Factors will allow for easier ordering in the analysis and visualizations later on.
