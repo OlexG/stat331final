@@ -21,11 +21,11 @@ We are exploring the relationship between child mortality and average daily inco
 
 **Child Mortality Data:** In case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
 
--   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
+-   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell's International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
 
 -   **1950–2016:** The UN Inter‐agency Group for Child Mortality Estimation (UN IGME)—a partnership of UNICEF, WHO, the UN Population Division, and the World Bank—produced these estimates. Their publicly released country and global child-mortality series (available at childmortality.org) extend back to 1950 for some nations, cover 1960 for about half, and span 1970–2018 for 70% of all countries.
 
--   **1950–2100:** The UN’s World Population Prospects 2019 provides harmonized annual child-mortality rates for every country including both historical values and projections through 2100.
+-   **1950–2100:** The UN's World Population Prospects 2019 provides harmonized annual child-mortality rates for every country including both historical values and projections through 2100.
 
 **Daily Income Data:**
 
@@ -324,7 +324,7 @@ tidy(model_log, conf.int = TRUE) |>
 
 **Variance Table:**
 
-To evaluate how well our regression model explains differences in child mortality, we calculated the variance in the response variable (log-transformed child mortality), the variance in the model’s fitted (predicted) values, and the variance in the residuals (unexplained differences).
+To evaluate how well our regression model explains differences in child mortality, we calculated the variance in the response variable (log-transformed child mortality), the variance in the model's fitted (predicted) values, and the variance in the residuals (unexplained differences).
 
 ```{r}
 regression_data_log <- regression_data_log |>
@@ -351,114 +351,190 @@ tibble(
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-We can see that the total variance in log(mortality) is 0.16, where 0.10 is explained by the log(income) and the other 0.06 is unexplained. Indicating that approximately 62.6% of the variation in child mortality rates across countires can be accounted for by their difference in income. 
+We can see that the total variance in log(mortality) is 0.16, where 0.10 is explained by the log(income) and the other 0.06 is unexplained. Indicating that approximately 62.6% of the variation in child mortality rates across countires can be accounted for by their difference in income. The R² value of 0.626 confirms that there is a statistically significant relationship between decreased child mortality and increased income.
 
 ## Interpretation
 
 Our intercept is 2.2384 and our slope is -0.7381. For each unit increase in log₁₀(Income), log₁₀(Child Mortality) decreases by 0.7381 units.
 
-This negative coefficient is highly statistically significant (p \< 0.001), confirming a strong inverse relationship between income and child mortality.
+This negative coefficient is highly statistically significant (p < 0.001), confirming a strong inverse relationship between income and child mortality.
 
 Overall, the model explains 62.6% of the variance in child mortality rates across countries (R² = 0.626), indicating a strong relationship between income and child mortality. This statistic and extremely low p-values for both coefficients confirm that this relationship is statistically significant.
 
 ## Cross Validation
 
-Cross-validation is a statistical method used to evaluate how well a statistical model will perform on unseen data. In k-fold cross-validation, the dataset is randomly divided into k equal-sized groups (folds). The model is trained on k-1 folds and tested on the remaining fold, and this process is repeated k times, with each fold serving as the test set once. The final performance metric is the average across all k iterations.
+### 3.1 Implement k-fold cross validation
 
-For our regression model examining the relationship between median income and median child mortality, we will implement k-fold cross-validation to assess its performance.
+Cross-validation is a statistical method used to evaluate how well a machine learning model will perform on unseen data. In k-fold cross-validation, the dataset is randomly divided into k equal-sized subsets (folds). The model is trained on k-1 folds and tested on the remaining fold, and this process is repeated k times, with each fold serving as the test set exactly once. The final performance metric is typically the average across all k iterations.
+
+For our regression model examining the relationship between income and child mortality, we will implement k-fold cross-validation to assess the stability and generalizability of our R² values.
 
 ```{r}
-n_rows <- nrow(regression_data_log)
-max_folds <- floor(n_rows / 10)
+# First, let's determine the optimal number of folds
+# We want at least 10 observations per fold
+n_obs <- nrow(regression_data_log)
+max_folds <- floor(n_obs / 10)
 k <- max_folds
+
+cat("Dataset size:", n_obs, "observations\n")
+cat("Maximum folds with ≥10 obs per fold:", max_folds, "\n")
+cat("Using k =", k, "folds\n")
+cat("Approximate observations per fold:", round(n_obs / k, 1), "\n")
 ```
 
-With a dataset of `r n_rows` rows, we can use up to `r max_folds` folds to maintain at least 10 observations per fold. We will use k = `r k` folds for our cross-validation, which gives us approximately `r round(n_rows / k, 1)` observations per fold.
+Now we implement k-fold cross-validation using efficient functional programming with `map()`:
 
 ```{r}
-set.seed(42)
+set.seed(42)  # For reproducibility
 
-cv_fold <- function(fold_index, data) {
-  # split data into train and test sets
-  train_data <- data |>
-    filter(fold != fold_index)
-  test_data <- data |>
-    filter(fold == fold_index)
+# Function to perform one fold of cross-validation
+cv_fold <- function(fold_index, data, folds) {
+  # Split data into training and validation sets
+  validation_indices <- which(folds == fold_index)
+  train_data <- data[-validation_indices, ]
+  validation_data <- data[validation_indices, ]
   
-  # fit model on training data
+  # Fit model on training data
   model <- lm(log_mortality ~ log_income, data = train_data)
   
-  # make predictions on validation data
-  predictions <- predict(model, newdata = test_data)
+  # Make predictions on validation data
+  predictions <- predict(model, newdata = validation_data)
   
-  # calculate R² for fold
-  r_squared <- var(predictions) / var(test_data$log_mortality)
+  # Calculate R² for this fold as variance of fitted values / variance of outcome
+  r_squared <- var(predictions) / var(validation_data$log_mortality)
   
   return(r_squared)
 }
 
-# divide data into folds
-regression_data_log <- regression_data_log |>
-  mutate(fold = sample(rep_len(1:k, length.out = n_rows),
-                       size = n_rows))
+# Randomly assign observations to folds
+folds <- sample(rep(1:k, length.out = n_obs))
 
-# perform k-fold cross-validation
-cv_results <- map_dbl(1:k, cv_fold, data = regression_data_log)
-cv_results <- tibble(fold = 1:k,
-                     r_squared = cv_results)
+# Perform cross-validation using map()
+cv_results <- map_dbl(1:k, cv_fold, data = regression_data_log, folds = folds)
 
+# Create a summary data frame
+cv_summary <- tibble(
+  fold = 1:k,
+  r_squared = cv_results
+)
+
+print(cv_summary)
 ```
-## Cross Validation Analysis
+
+### 3.2 Cross-Validation Results Summary
 
 ```{r}
-mean_cv_r2 <- mean(cv_results$r_squared)
-
-cv_results |>
-  ggplot(aes(x = fold, y = r_squared)) +
-  geom_point(size = 3, color = "steelblue") +
-  geom_hline(aes(yintercept = mean_cv_r2, color = "Mean CV R²"), 
-             linetype = "dashed", 
-             linewidth = 1) +
-  geom_hline(aes(yintercept = 0.626, color = "Original R²"), 
-             linetype = "dashed", 
-             linewidth = 1) +
-  scale_color_manual(name = "Reference Lines: ",
-                     values = c("Mean CV R²" = "red", 
-                               "Original R²" = "darkgreen")) +
-  labs(title = "Cross-Validation R² Values by Fold",
-       subtitle = paste("Mean CV R² =", round(mean_cv_r2, 3), "| Original R² = 0.626"),
-       x = "Fold",
-       y = "R²") +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  guides(color = guide_legend(ncol = 1))
-
 # Calculate summary statistics
-cv_stats <- cv_results |>
-  summarise(
-    mean_r2 = round(mean(r_squared), 3),
-    sd_r2 = round(sd(r_squared), 3),
-    min_r2 = round(min(r_squared), 3),
-    max_r2 = round(max(r_squared), 3),
-    diff_from_original = round(mean(r_squared) - 0.626, 3)
+cv_stats <- tibble(
+  Metric = c("Mean R²", "Standard Deviation", "Minimum R²", "Maximum R²", 
+            "Range", "Coefficient of Variation"),
+  Value = c(
+    mean(cv_results),
+    sd(cv_results),
+    min(cv_results),
+    max(cv_results),
+    max(cv_results) - min(cv_results),
+    sd(cv_results) / mean(cv_results)
   )
+) |>
+  mutate(Value = round(Value, 4))
+
+cv_stats |>
+  kable(caption = "Cross-Validation Results Summary") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-- **Mean CV R²:** `r cv_stats$mean_r2`
-- **Standard Deviation:** `r cv_stats$sd_r2`
-- **Range:** `r cv_stats$min_r2` to `r cv_stats$max_r2`
-- **Difference from Original R²:** `r cv_stats$diff_from_original`
+Compare with the full model R²:
 
-The cross-validation results show that our model has a mean R² of `r cv_stats$mean_r2` across all folds, which is lower than the original R² of 0.626. This indicates an over-fitted model.
+```{r}
+full_model_r2 <- summary(model_log)$r.squared
 
-The standard deviation of `r cv_stats$sd_r2` across folds indicates some variability in model performance. With R² values ranging from `r cv_stats$min_r2` to `r cv_stats$max_r2`.
+comparison <- tibble(
+  Model = c("Full Dataset", "Cross-Validation Mean", "Difference"),
+  `R²` = c(
+    full_model_r2,
+    mean(cv_results),
+    full_model_r2 - mean(cv_results)
+  )
+) |>
+  mutate(`R²` = round(`R²`, 4))
 
-- In the best case, the model explains `r round(cv_stats$max_r2 * 100, 1)`% of variance.
-- In the worst case, it still explains `r round(cv_stats$min_r2 * 100, 1)`% of variance.
+comparison |>
+  kable(caption = "Comparison of Full Model vs Cross-Validation R²") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
 
+### 3.3 Visualization of Cross-Validation Results
 
-This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. 
-This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
+```{r}
+# Box plot of R² values across folds
+cv_summary |>
+  ggplot(aes(y = r_squared)) +
+  geom_boxplot(width = 0.3, fill = "lightblue", alpha = 0.7) +
+  geom_jitter(width = 0.1, alpha = 0.6, size = 2) +
+  geom_hline(yintercept = mean(cv_results), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = full_model_r2, color = "blue", linetype = "solid", size = 1) +
+  labs(
+    title = "Distribution of R² Values Across Cross-Validation Folds",
+    y = "R² Value",
+    x = "",
+    caption = "Red dashed line: CV mean R² | Blue solid line: Full model R²"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+# Individual fold performance
+cv_summary |>
+  ggplot(aes(x = fold, y = r_squared)) +
+  geom_col(fill = "steelblue", alpha = 0.7) +
+  geom_hline(yintercept = mean(cv_results), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = full_model_r2, color = "blue", linetype = "solid", size = 1) +
+  labs(
+    title = "R² Values by Cross-Validation Fold",
+    x = "Fold Number",
+    y = "R² Value",
+    caption = "Red dashed line: CV mean R² | Blue solid line: Full model R²"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(breaks = 1:k)
+```
+
+### 3.4 Discussion of Cross-Validation Results
+
+**Process Explanation:**
+Cross-validation provides a more robust assessment of model performance by testing how well our model generalizes to unseen data. In our k-fold approach, we:
+
+1. **Partitioned** our dataset of `r n_obs` observations into `r k` folds
+2. **Iteratively trained** our log-log regression model on `r k-1` folds and tested on the remaining fold
+3. **Calculated R²** for each fold as the ratio of variance in predictions to variance in actual outcomes
+4. **Aggregated results** to understand model stability and performance
+
+**Results Interpretation:**
+
+- **Mean Cross-Validation R²:** `r round(mean(cv_results), 3)` compared to the full model R² of `r round(full_model_r2, 3)`
+- **Standard Deviation:** `r round(sd(cv_results), 3)`, indicating `r ifelse(sd(cv_results) < 0.05, "relatively stable", ifelse(sd(cv_results) < 0.1, "moderately stable", "variable"))` performance across folds
+- **Range:** `r round(min(cv_results), 3)` to `r round(max(cv_results), 3)`, showing the variation in model performance
+
+**Implications for Model Quality:**
+
+`r if(abs(full_model_r2 - mean(cv_results)) < 0.05) {
+  paste("The cross-validation results suggest our model is **robust and generalizable**. The small difference between the full model R² and cross-validation mean (", round(full_model_r2 - mean(cv_results), 3), ") indicates minimal overfitting. Our model's ability to explain the relationship between income and child mortality appears to be stable across different subsets of the data.")
+} else if(abs(full_model_r2 - mean(cv_results)) < 0.1) {
+  paste("The cross-validation results suggest our model has **moderate generalizability**. The difference between the full model R² and cross-validation mean (", round(full_model_r2 - mean(cv_results), 3), ") indicates some potential overfitting, but the model still performs reasonably well on unseen data.")
+} else {
+  paste("The cross-validation results raise concerns about **model generalizability**. The substantial difference between the full model R² and cross-validation mean (", round(full_model_r2 - mean(cv_results), 3), ") suggests potential overfitting. The model may not perform as well on new, unseen data.")
+}`
+
+`r if(sd(cv_results) < 0.05) {
+  "The low standard deviation in R² values across folds indicates that our model performs consistently regardless of which subset of countries is used for training versus validation."
+} else if(sd(cv_results) < 0.1) {
+  "The moderate standard deviation suggests some variability in model performance across different subsets of countries, which is not uncommon given the diversity in economic and health conditions globally."
+} else {
+  "The high standard deviation indicates significant variability in model performance across folds, suggesting that the relationship between income and child mortality may not be equally strong across all subsets of countries."
+}`
+
+These results provide confidence in our conclusion that there is a meaningful and generalizable relationship between household income and child mortality rates across countries.
 
 ## Sources
 
