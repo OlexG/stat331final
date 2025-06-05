@@ -459,6 +459,9 @@ The standard deviation of `r cv_stats$sd_r2` across folds indicates some variabi
 This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. 
 This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
 
+## Conclusion
+Our analysis confirms a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p < 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.
+
 ## Sources
 
 -   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)

@@ -3322,6 +3322,7 @@ border: 0;
   <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation">Interpretation</a></li>
   <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation">Cross Validation</a></li>
   <li><a href="#cross-validation-analysis" id="toc-cross-validation-analysis" class="nav-link" data-scroll-target="#cross-validation-analysis">Cross Validation Analysis</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#sources" id="toc-sources" class="nav-link" data-scroll-target="#sources">Sources</a></li>
   </ul>
 </nav>
@@ -4012,6 +4013,10 @@ border: 0;
 <li>In the worst case, it still explains 6.6% of variance.</li>
 </ul>
 <p>This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>Our analysis confirms a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p &lt; 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.</p>
 </section>
 <section id="sources" class="level2">
 <h2 class="anchored" data-anchor-id="sources">Sources</h2>
@@ -4955,11 +4960,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb23-497"><a href="#cb23-497" aria-hidden="true" tabindex="-1"></a>This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. </span>
 <span id="cb23-498"><a href="#cb23-498" aria-hidden="true" tabindex="-1"></a>This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.</span>
 <span id="cb23-499"><a href="#cb23-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-500"><a href="#cb23-500" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sources</span></span>
-<span id="cb23-501"><a href="#cb23-501" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-502"><a href="#cb23-502" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">WHO Source</span><span class="co">](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)</span></span>
-<span id="cb23-503"><a href="#cb23-503" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">PMC Source</span><span class="co">](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)</span></span>
-<span id="cb23-504"><a href="#cb23-504" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">gganimate Documentation</span><span class="co">](https://gganimate.com/articles/gganimate.html)</span></span>
+<span id="cb23-500"><a href="#cb23-500" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span>
+<span id="cb23-501"><a href="#cb23-501" aria-hidden="true" tabindex="-1"></a>Our analysis confirms a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p &lt; 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.</span>
+<span id="cb23-502"><a href="#cb23-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-503"><a href="#cb23-503" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sources</span></span>
+<span id="cb23-504"><a href="#cb23-504" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-505"><a href="#cb23-505" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">WHO Source</span><span class="co">](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)</span></span>
+<span id="cb23-506"><a href="#cb23-506" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">PMC Source</span><span class="co">](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)</span></span>
+<span id="cb23-507"><a href="#cb23-507" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">gganimate Documentation</span><span class="co">](https://gganimate.com/articles/gganimate.html)</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
