@@ -184,7 +184,6 @@ child_income <- child_income |>
   filter(year <= 2024)
 ```
 
-
 **Factor conversion**
 
 ```{r}
@@ -350,7 +349,7 @@ tibble(
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-We can see that the total variance in log(mortality) is 0.134, where 0.064 is explained by the log(income) and the other 0.07 is unexplained. Indicating that approximately 47.8% of the variation in child mortality rates across countires can be accounted for by their difference in income. 
+We can see that the total variance in log(mortality) is 0.134, where 0.064 is explained by the log(income) and the other 0.07 is unexplained. Indicating that approximately 47.8% of the variation in child mortality rates across countires can be accounted for by their difference in income.
 
 ## Interpretation
 
@@ -407,6 +406,7 @@ cv_results <- tibble(fold = 1:k,
                      r_squared = cv_results)
 
 ```
+
 ## Cross Validation Analysis
 
 ```{r}
@@ -443,24 +443,94 @@ cv_stats <- cv_results |>
   )
 ```
 
-- **Mean CV R²:** `r cv_stats$mean_r2`
-- **Standard Deviation:** `r cv_stats$sd_r2`
-- **Range:** `r cv_stats$min_r2` to `r cv_stats$max_r2`
-- **Difference from Original R²:** `r cv_stats$diff_from_original`
+-   **Mean CV R²:** `r cv_stats$mean_r2`
+-   **Standard Deviation:** `r cv_stats$sd_r2`
+-   **Range:** `r cv_stats$min_r2` to `r cv_stats$max_r2`
+-   **Difference from Original R²:** `r cv_stats$diff_from_original`
 
 The cross-validation results show that our model has a mean R² of `r cv_stats$mean_r2` across all folds, which is lower than the original R² of 0.626. This indicates an over-fitted model.
 
 The standard deviation of `r cv_stats$sd_r2` across folds indicates some variability in model performance. With R² values ranging from `r cv_stats$min_r2` to `r cv_stats$max_r2`.
 
-- In the best case, the model explains `r round(cv_stats$max_r2 * 100, 1)`% of variance.
-- In the worst case, it still explains `r round(cv_stats$min_r2 * 100, 1)`% of variance.
+-   In the best case, the model explains `r round(cv_stats$max_r2 * 100, 1)`% of variance.
+-   In the worst case, it still explains `r round(cv_stats$min_r2 * 100, 1)`% of variance.
 
+This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
 
-This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. 
-This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
+**Testing Multiple K-Values**
+
+To further assess the generalizability of our model, we extended our k-fold cross-validation procedure by evaluating a **range of k values**. Our initial cross-validation used a single value of k (based on maintaining at least 10 observations per fold), which was 19 folds, we then parameterized this process and tested a range of k values from 2 through 20.
+
+```{r}
+run_cv <- function(k, data) {
+  n_rows <- nrow(data)
+  
+  cv_fold <- function(fold_index, data) {
+    train_data <- data |> filter(fold != fold_index)
+    test_data <- data |> filter(fold == fold_index)
+    
+    model <- lm(log_mortality ~ log_income, data = train_data)
+    predictions <- predict(model, newdata = test_data)
+    
+    r_squared <- cor(test_data$log_mortality, predictions, use = "complete.obs")^2
+    if (is.na(r_squared)) r_squared <- 0
+    
+    return(r_squared)
+  }
+  
+  # Shuffle folds
+  set.seed(42)
+  data <- data |>
+    mutate(fold = sample(rep_len(1:k, length.out = n_rows)))
+  
+  # Cross-validation loop
+  cv_results <- map_dbl(1:k, cv_fold, data = data)
+  
+  # Return average R²
+  mean_r2 <- round(mean(cv_results), 3)
+  return(mean_r2)
+}
+```
+
+```{r}
+k_values <- c(2,4,6,8,10,12,14,16,18,19,20)
+cv_summary <- tibble(
+  k = k_values,
+  mean_r_squared = map_dbl(k_values, ~run_cv(.x, regression_data_log))
+)
+cv_summary|>
+  kable()
+```
+
+```{r}
+cv_summary |>
+  ggplot(aes(x = factor(k), y = mean_r_squared)) +
+  geom_col(fill = "steelblue", width = 0.7) +
+  geom_hline(yintercept = 0.626, linetype = "dashed", color = "darkgreen", linewidth = 1) +
+  geom_text(aes(label = round(mean_r_squared, 3)), vjust = -0.5, size = 3.5) +
+  annotate("text", x = Inf, y = 0.626, label = "Original R² = 0.626",
+           hjust = 1.1, vjust = -0.5, color = "darkgreen", fontface = "italic", size = 4) +
+  labs(
+    title = "Mean R² from k-Fold Cross-Validation vs. Original R²",
+    x = "Number of Folds (k)",
+    y = "Mean CV R²"
+  ) +
+  ylim(0, 0.7) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+We can see from the table and graph that our mean R² for **k = 19** remains **0.465**, as previously observed in the single cross-validation analysis. When testing a broader range of k value, from 2 to 20, we found that the highest mean R² occurred at **k = 4 and k = 8**, both with a value of **0.486**. Despite this modest increase, all R² values remained consistently below the original model R² of 0.626, reaffirming that the model is over-fitting when evaluated on the full data set.
+
+These results confirm our earlier conclusion: the model performs well on the training data but struggles to generalize to new, unseen subsets of countries. While varying the number of folds does have some impact on estimated performance, it does not bring it up enough to change any conclusions..
 
 ## Conclusion
-Our analysis confirms a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p < 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.
+
+Our analysis confirms a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p \< 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.
 
 ## Sources
 
