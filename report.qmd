@@ -19,25 +19,25 @@ code-fold: true
 
 We are exploring the relationship between child mortality and average daily income.
 
-**Child Mortality Data:** In case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a certain country during a certain year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
+**Child Mortality Data:** In the case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a specific country during a particular year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
 
 -   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
 
 -   **1950–2016:** The UN Inter‐agency Group for Child Mortality Estimation (UN IGME)—a partnership of UNICEF, WHO, the UN Population Division, and the World Bank—produced these estimates. Their publicly released country and global child-mortality series (available at childmortality.org) extend back to 1950 for some nations, cover 1960 for about half, and span 1970–2018 for 70% of all countries.
 
--   **1950–2100:** The UN’s World Population Prospects 2019 provides harmonized annual child-mortality rates for every country including both historical values and projections through 2100.
+-   **1950–2100:** The UN’s World Population Prospects 2019 provides harmonized annual child mortality rates for every country including both historical values and projections through 2100.
 
 **Daily Income Data:**
 
-In case of average daily income, we are analyzing the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP). Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
+For the average daily income, we analyze the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP). Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
 
--   **1981-2019:** Data is collected from the World Bank. For the countries missing from the World Bank, the number is estimated using the mean income based on the country GDP per capita. That data itself also has many sources, including the World Bank, Maddison Project Database, and IMF.
+-   **1981-2019:** Data is collected from the World Bank. For the countries missing from the World Bank, the number is estimated using the mean income based on the country's GDP per capita. That data itself also has many sources, including the World Bank, Maddison Project Database, and IMF.
 
 -   **1800-1981 and 2019-2100:** These numbers are estimated using the growth rates of the constant dollar GDP per capita. These are rough estimates.
 
 ## Hypthosize Data
 
-We hypothesize that there is a strong negative correlation between average daily income and child mortality rates across countries and over time. Specifically, we expect as average daily income increases, child mortality rates will decrease. We suspect this because higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are factors that could contribute in reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore potentially reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education could contribute significantly to higher child mortality rates(PMC).
+We hypothesize that there is a strong negative correlation between average daily income and child mortality rates across countries and over time. Specifically, we expect as average daily income increases, child mortality rates will decrease. We suspect this because higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are factors that could contribute to reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore potentially reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education could contribute significantly to higher child mortality rates(PMC).
 
 ## Data Cleaning Process
 
@@ -66,7 +66,7 @@ Since the child mortality data set doesn't contain these countries, we will drop
 
 **Column names**
 
-Now we are removing the X character that was appended onto every year in the table
+Now we are removing the X character that was appended onto every year in the table.
 
 ```{r}
 names(child) <- names(child) |>
@@ -77,7 +77,7 @@ names(income) <- names(income) |>
 
 **Pivoting each dataset**
 
-Next we pivot both datasets to long format, where each observation corresponds to a country, year, and its mortality rate/income. This allows us to obvserve our data by country-year pairs for observations rather than each observation being independent country.
+Next, we pivot both datasets to a long format, where each observation corresponds to a country, year, and mortality rate/income. This allows us to observe our data by country-year pairs for observations rather than each observation being an independent country.
 
 ```{r}
 child <- child |>
@@ -91,7 +91,7 @@ income <- income |>
 
 **Joining the datasets**
 
-We chose to join from child to income which will keep all the countries child has, but drop those two additional countries' data from Liechtenstein and Holy See.
+We chose to join from child to income which will keep all the countries the child dataset has, but drop those two additional countries' data from Liechtenstein and Holy See.
 
 ```{r}
 child_income <- child |>
@@ -100,7 +100,7 @@ child_income <- child |>
 
 **Removing missing values**
 
-Once joined, we will check the data for missing values, as we want each observation to be a complete record of country, year, mortality rate, and income.
+Once joined, we will check the data for missing values, as we want each observation to be a complete record of the country, year, mortality rate, and income.
 
 ```{r}
 child_income |>
@@ -168,7 +168,7 @@ child_income |>
  )
 ```
 
-For each of the countries above (10 countries in total), we have missing values from the year 1800 to 1949 for income. Overall, we have 1500 missing values for income. We will filter out these rows for simplicity's sake, as we cannot predict these values.
+For each of the countries above (10 countries in total), we have missing values from the years 1800 to 1949 for income. Overall, we have 1500 missing values for income. We will filter out these rows for simplicity's sake, as we cannot predict these values.
 
 ```{r}
 child_income <- child_income |>
@@ -177,7 +177,7 @@ child_income <- child_income |>
 
 **Removing projections**
 
-Since we want the rest of the analysis to be based on actual historical values instead of projections, we will filter out all rows with a years past 2024.
+Since we want the rest of the analysis to be based on actual historical values instead of projections, we will filter out all rows with years past 2024.
 
 ```{r}
 child_income <- child_income |>
@@ -238,11 +238,11 @@ anim_save("income_mortality.gif",
 
 ![](./animations/income_mortality.gif)
 
-The animation shows that both income and child mortality rates have changed substantially over time, with many countries experiencing a decrease in income levels and an increase in child mortality. As time progresses, the points shift from a horizontal pattern to a near vertical pattern, indicating a greater variation in child mortality rates across countries in the present day.
+The animation shows that both income and child mortality rates have changed substantially over time, with many countries experiencing a decrease in income levels and an increase in child mortality. As time progresses, the points shift from a horizontal pattern to a near-vertical pattern, indicating a greater variation in child mortality rates across countries in the present day.
 
 ## Linear Regression
 
-We will further analyze the relationship between income and child mortality through fitting a linear regression model. We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...). Let's begin by plotting the scatterplot of this data, where x is our median daily income value, and y is the median child mortality value.
+We will further analyze the relationship between income and child mortality by fitting a linear regression model. We chose to use median values across all years rather than means because the median is more robust to outliers and extreme values, which one might expect for some countries due to external events (wars increasing child mortality, etc...). Let's begin by plotting the scatterplot of this data, where x is our median daily income value, and y is the median child mortality value.
 
 ```{r}
 regression_data <- child_income |>
@@ -279,7 +279,7 @@ regression_data |>
        y = "Median Child Mortality (per 1000 births, log scale)")
 ```
 
-Above, we clearly plotted a better fitted line, suggesting that a log-log model is much more appropriate for our data. Here are the calculated coefficients for the log-log model:
+Above, we plotted a better-fitted line, suggesting that a log-log model is much more appropriate for our data. Here are the calculated coefficients for the log-log model:
 
 ```{r}
 regression_data_log <- regression_data |>
@@ -349,7 +349,7 @@ tibble(
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-We can see that the total variance in log(mortality) is 0.134, where 0.064 is explained by the log(income) and the other 0.07 is unexplained. Indicating that approximately 47.8% of the variation in child mortality rates across countires can be accounted for by their difference in income.
+We can see that the total variance in log(mortality) is 0.134, where 0.064 is explained by the log(income) and the other 0.07 is unexplained. Indicating that approximately 47.8% of the variation in child mortality rates across countries can be accounted for by their difference in income.
 
 ## Interpretation
 
@@ -455,7 +455,7 @@ The standard deviation of `r cv_stats$sd_r2` across folds indicates some variabi
 -   In the best case, the model explains `r round(cv_stats$max_r2 * 100, 1)`% of variance.
 -   In the worst case, it still explains `r round(cv_stats$min_r2 * 100, 1)`% of variance.
 
-This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. This means that while in the best-case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst-case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
+This variability suggests that the income-mortality relationship strength depends significantly on which countries are included, likely reflecting different stages of economic development and healthcare systems. This means that while in the best case, for certain sets of countries, there is a clear relationship between median income and median child mortality, in the worst case, the relationship is much weaker, indicating that the model may not generalize well across all countries.
 
 **Testing Multiple K-Values**
 
@@ -526,7 +526,7 @@ cv_summary |>
 
 We can see from the table and graph that our mean R² for **k = 19** remains **0.465**, as previously observed in the single cross-validation analysis. When testing a broader range of k value, from 2 to 20, we found that the highest mean R² occurred at **k = 4 and k = 8**, both with a value of **0.486**. Despite this modest increase, all R² values remained consistently below the original model R² of 0.626, reaffirming that the model is over-fitting when evaluated on the full data set.
 
-These results confirm our earlier conclusion: the model performs well on the training data but struggles to generalize to new, unseen subsets of countries. While varying the number of folds does have some impact on estimated performance, it does not bring it up enough to change any conclusions..
+These results confirm our earlier conclusion: the model performs well on the training data but struggles to generalize to new, unseen subsets of countries. While varying the number of folds does have some impact on estimated performance, it does not bring it up enough to change any conclusions.
 
 ## Conclusion
 
