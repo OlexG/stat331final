@@ -13,13 +13,14 @@ execute:
   message: false
   warning: false
 code-fold: true
+bibliography: references.bib
 ---
 
 ## Data
 
 We are exploring the relationship between child mortality and average daily income.
 
-**Child Mortality Data:** In the case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a specific country during a particular year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year.
+**Child Mortality Data:** In the case of child mortality, our data source provides the number of deaths of children under 5 years of age per 1000 live births for a specific country during a particular year. We have data for the years 1800 to 2100. There are three separate sources for this data, depending on the year (@gapminder).
 
 -   **1800–1950 (and intermittently beyond):** Data comes from Gapminder version 7, assembled by Klara Johansson and Mattias Lindgren. It draws primarily on mortality.org and Brian R. Mitchell’s International Historical Statistics. Infant mortality estimates were statistically converted into child mortality figures.
 
@@ -29,7 +30,7 @@ We are exploring the relationship between child mortality and average daily inco
 
 **Daily Income Data:**
 
-For the average daily income, we analyze the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP). Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100.
+For the average daily income, we analyze the survey-derived average daily household income or consumption per person, adjusted to 2017 prices in constant international dollars (PPP). Similarly, there are different sources for different years, and we also have data for the years 1800 to 2100 (@gapminder).
 
 -   **1981-2019:** Data is collected from the World Bank. For the countries missing from the World Bank, the number is estimated using the mean income based on the country's GDP per capita. That data itself also has many sources, including the World Bank, Maddison Project Database, and IMF.
 
@@ -37,7 +38,7 @@ For the average daily income, we analyze the survey-derived average daily househ
 
 ## Hypthosize Data
 
-We hypothesize that there is a strong negative correlation between average daily income and child mortality rates across countries and over time. Specifically, we expect as average daily income increases, child mortality rates will decrease. We suspect this because higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are factors that could contribute to reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore potentially reducing the likelihood of children dying(WHO). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education could contribute significantly to higher child mortality rates(PMC).
+We hypothesize that there is a strong negative correlation between average daily income and child mortality rates across countries and over time. Specifically, we expect as average daily income increases, child mortality rates will decrease. We suspect this because higher household income is usually associated with better access to healthcare, nutrition, cleaner living environments, and higher levels of education. All of these are factors that could contribute to reducing child mortality. In wealthier households or areas, families are more likely to afford vaccinations, clean water, and nutritious food, therefore potentially reducing the likelihood of children dying (@social_determinants_of_health). Conversely, in low-income areas, limited access to healthcare, malnutrition, and lack of health education could contribute significantly to higher child mortality rates (@udalova_association_2022).
 
 ## Data Cleaning Process
 
@@ -215,6 +216,8 @@ To explore how the relationship between daily income and child mortality has cha
 
 ```{r}
 #| eval: false
+
+# https://gganimate.com/articles/gganimate.html
 anim <- child_income |>
   ggplot(mapping = aes(x = daily_income,
                        y = child_mortality)) +
@@ -520,9 +523,3 @@ These results support our earlier conclusion: the model performs well on the tra
 ## Conclusion
 
 Our analysis indicates a strong inverse relationship between a country’s average daily income and its under‐5 mortality rate. Our log‐log regression gives us a slope of –0.834 (p \< 0.001), indicating that a tenfold increase in income corresponds to roughly an 83 % reduction in child mortality, and explains about 48 % of the variance. However, cross‐validation shows some overfitting and considerable variability across country subsets (CV R² ranges from 0.066 to 1.812), suggesting that income alone does not account for all differences. Factors like healthcare infrastructure, education, and sanitation also matter. By focusing on medians and excluding projected values, we focused on making our results reliable, but this approach may have overlooked short‐term fluctuations and excluded very small countries with incomplete early records. Moreover, although increasing income is vital for reducing child deaths, sustained improvements also require strong healthcare systems and social support services.
-
-## Sources
-
--   [WHO Source](https://www.who.int/health-topics/social-determinants-of-health#tab=tab_1)
--   [PMC Source](https://pmc.ncbi.nlm.nih.gov/articles/PMC9857424/)
--   [gganimate Documentation](https://gganimate.com/articles/gganimate.html)
